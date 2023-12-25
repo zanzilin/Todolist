@@ -5,65 +5,262 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.TimePicker;
+import android.widget.Toast;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.Adapter.ToDoAdapter;
 import com.example.todolist.Model.ToDoModel;
-import com.example.todolist.Utils.DatabaseHandler;
+
+import com.example.todolist.Utils.Database;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements DialogCloseListener {
+public class MainActivity extends AppCompatActivity  {
 
-    private RecyclerView tasksRecyclerView;
-    private ToDoAdapter tasksAdapter;
-    private List<ToDoModel> tasksList;
-    private DatabaseHandler db;
-    private FloatingActionButton fab;
+
+    private Database database;
+    private ListView taskList;
+    private ImageView imgAdd;
+    private ArrayList<ToDoModel> arrayModel;
+    private ToDoAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //getSupportActionBar().hide();
 
-        db = new DatabaseHandler(this);
-        db.openDatabase();
+       imgAdd =  findViewById(R.id.img_add);
+       taskList =  findViewById(R.id.tasksRecyclerView);
+       arrayModel = new ArrayList<>();
 
-        tasksList = new ArrayList<>();
-
-        tasksRecyclerView = findViewById(R.id.tasksRecyclerView);
-        tasksRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        tasksAdapter = new ToDoAdapter(db,this);
-        tasksRecyclerView.setAdapter(tasksAdapter);
+       adapter = new ToDoAdapter(this, R.layout.t_layout, arrayModel);
+       taskList.setAdapter(adapter);
 
 
-        ItemTouchHelper itemTouchHelper = new
-                ItemTouchHelper(new RecyclerItemTouchHelper(tasksAdapter));
-        itemTouchHelper.attachToRecyclerView(tasksRecyclerView);
+        // Khởi tạo đối tượng Database
+        database = new Database(this, "note.sqlite", null, 2);
+        database.QueryData("CREATE TABLE IF NOT EXISTS Task(Id INTEGER PRIMARY KEY AUTOINCREMENT, Status VARCHAR(200), Date VARCHAR(200), Time VARCHAR(200));");
+        GetDataToDo();
 
-        fab = findViewById(R.id.fab);
 
-        tasksList = db.getAllTasks();
-        Collections.reverse(tasksList);
-        tasksAdapter.setTasks(tasksList);
 
-        fab.setOnClickListener(new View.OnClickListener() {
+
+
+        imgAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AddNewTask.newInstance().show(getSupportFragmentManager(), AddNewTask.TAG);
+                addNewTask();
             }
         });
     }
-    @Override
-    public void handleDialogClose(DialogInterface dialog){
-        tasksList = db.getAllTasks();
-        Collections.reverse(tasksList);
-        tasksAdapter.setTasks(tasksList);
-        tasksAdapter.notifyDataSetChanged();
+
+    private void addNewTask(){
+
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.new_task);
+
+        final EditText edtTen = (EditText) dialog.findViewById(R.id.editTextTenCV);
+        final TextView txtDate = (TextView) dialog.findViewById(R.id.textDateCV);
+        final TextView txtTime = (TextView) dialog.findViewById(R.id.textTimeCV);
+
+        Button btnThem = (Button) dialog.findViewById(R.id.buttonThem);
+        Button btnHuy =  (Button) dialog.findViewById(R.id.buttonHuy);
+
+        txtTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickTime(txtTime, edtTen);
+            }
+        });
+        txtDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickDate(txtDate);
+            }
+        });
+
+        btnThem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String status = edtTen.getText().toString();
+                String date = txtDate.getText().toString();
+                String time = txtTime.getText().toString();
+
+                //kiểm tra không nhập gì vào ô editText
+                if(status.equals("")){
+                    Toast.makeText(MainActivity.this, "Vui lòng nhập tiêu đề công việc.",Toast.LENGTH_SHORT).show();
+                }else {
+                    //insert database
+                    database.QueryData("INSERT INTO Task (Id, Status, Date, Time) VALUES (null, '" + status + "','"+date+"','"+time+"');");
+                    Toast.makeText(MainActivity.this, "Đã thêm.",Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+
+                    GetDataToDo();
+                }
+            }
+        });
+
+        btnHuy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+
     }
+
+    public void editTask(String status, String date, String time, final int id){
+
+        final  Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.edit_task);
+
+        final EditText edtStatus = (EditText) dialog.findViewById(R.id.editTextTenCV);
+        final TextView tvDate = (TextView) dialog.findViewById(R.id.textDateCV_edt);
+        final TextView tvTime = (TextView) dialog.findViewById(R.id.textTimeCV_edt);
+
+        Button btnXacNhan = (Button) dialog.findViewById(R.id.buttonupdate);
+        Button btnHuy = (Button) dialog.findViewById(R.id.buttonCancle);
+
+        edtStatus.setText(status);
+        tvDate.setText(date);
+        tvTime.setText(time);
+
+
+        tvTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickTime(tvTime, edtStatus);
+            }
+        });
+        //bắt sự kiện chọn ngày trong dialog
+        tvDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickDate(tvDate);
+            }
+        });
+
+        btnHuy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        btnXacNhan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String statusMoi = edtStatus.getText().toString().trim();
+                String dateMoi = tvDate.getText().toString().trim();
+                String timeMoi = tvTime.getText().toString().trim();
+
+                database.QueryData("UPDATE Task SET Status ='"+statusMoi+"', Date = '"+dateMoi+"', Time = '"+timeMoi+"' WHERE Id = '"+ id +"'");
+                Toast.makeText(MainActivity.this, "Đã cập nhập",Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                GetDataToDo();
+            }
+        });
+        dialog.show();
+
+    }
+
+    public void deleteTask(String status, final int id){
+        AlertDialog.Builder dialogXoa = new AlertDialog.Builder(this);
+        dialogXoa.setMessage("Bạn có muốn xóa không?");
+
+        dialogXoa.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                database.QueryData("DELETE FROM Task WHERE Id = '"+id+"'");
+                Toast.makeText(MainActivity.this, "Đã xóa",Toast.LENGTH_SHORT).show();
+                GetDataToDo();
+            }
+        });
+
+        dialogXoa.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        dialogXoa.show();
+
+    }
+
+    private void GetDataToDo(){
+
+        Cursor dataTodo = database.GetData("SELECT * FROM Task");
+        arrayModel.clear();
+        while (dataTodo.moveToNext()){
+            int id = dataTodo.getInt(0);
+            String status = dataTodo.getString(1);
+            String date = dataTodo.getString(2);
+            String time = dataTodo.getString(3);
+            arrayModel.add(new ToDoModel(id, status, date, time));
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    private void pickTime(final TextView txtTime, final EditText edtTen) {
+        final Calendar calendar = Calendar.getInstance();
+
+        int gio = calendar.get(Calendar.HOUR_OF_DAY);
+        int phut = calendar.get(Calendar.MINUTE);
+        final TimePickerDialog timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+                calendar.set(0,0,0,hourOfDay, minute);
+                txtTime.setText(simpleDateFormat.format(calendar.getTime()));
+                //setMultipleAlarms(calendar, edtTen);
+            }
+        }, gio, phut, true);
+        timePickerDialog.show();
+
+    }
+    private void pickDate(final TextView txtDate) {
+        final Calendar calendar = Calendar.getInstance();
+        int ngay = calendar.get(Calendar.DATE);
+        int thang = calendar.get(Calendar.MONTH);
+        int nam = calendar.get(Calendar.YEAR);
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                calendar.set(year,month,dayOfMonth);
+                txtDate.setText(simpleDateFormat.format(calendar.getTime()));
+            }
+        }, nam, thang, ngay);
+        datePickerDialog.show();
+    }
+
+
+
+
+
 }

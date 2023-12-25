@@ -15,23 +15,27 @@
         android:textColor="@android:color/black"
         android:textSize="40sp"
         android:textStyle="bold" />
-    <androidx.recyclerview.widget.RecyclerView
+    <ListView
         android:id="@+id/tasksRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/tasksText"
         android:nestedScrollingEnabled="true"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/img_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_margin="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginBottom="50dp"
         android:backgroundTint="@android:color/darker_gray"
-        android:src="@drawable/baseline_playlist_add"
-        android:contentDescription="NULL"/>
+        android:contentDescription="NULL"
+        android:src="@drawable/baseline_playlist_add" />
 
 
 

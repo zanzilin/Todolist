@@ -1,96 +1,127 @@
 package com.example.todolist.Adapter;
 
 import android.content.Context;
-import android.os.Bundle;
+import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.todolist.AddNewTask;
 import com.example.todolist.MainActivity;
 import com.example.todolist.Model.ToDoModel;
 import com.example.todolist.R;
-import com.example.todolist.Utils.DatabaseHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class ToDoAdapter extends RecyclerView.Adapter<ToDoAdapter.ViewHolder> {
+public class ToDoAdapter extends BaseAdapter {
 
-    private List<ToDoModel> todoList;
-    private MainActivity activity;
-    private DatabaseHandler db;
+    private MainActivity context;
+    private int layout;
+    private List<ToDoModel> taskList;
 
-    public ToDoAdapter(DatabaseHandler db, MainActivity activity){
-        this.activity = activity;
-        this.db = db;
-    }
-
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.t_layout,parent,false);
-
-        return new ViewHolder(itemView);
-    }
-    public void onBindViewHolder(ViewHolder holder, int position){
-        db.openDatabase();
-
-        ToDoModel item = todoList.get(position);
-        holder.task.setText(item.getTask());
-        holder.task.setChecked(toBoolean(item.getStatus()));
-        holder.task.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    db.updateStatus(item.getId(), 1);
-                } else {
-                    db.updateStatus(item.getId(), 0);
-                }
-            }
-        });
+    public  ToDoAdapter(MainActivity context, int layout, List<ToDoModel> taskList){
+        this.context = context;
+        this.layout = layout;
+        this.taskList = taskList;
     }
 
     @Override
-    public int getItemCount(){
-        return todoList.size();
-    }
-    private  boolean toBoolean(int n){
-        return n!=0;
+    public int getCount() {
+        return taskList.size();
     }
 
-
-    public Context getContext() {
-        return activity;
+    @Override
+    public Object getItem(int position) {
+        return null;
     }
 
-    public void setTasks(List<ToDoModel> todoList) {
-        this.todoList = todoList;
-        notifyDataSetChanged();
-    }
-    public void deleteItem(int position) {
-        ToDoModel item = todoList.get(position);
-        db.deleteTask(item.getId());
-        todoList.remove(position);
-        notifyItemRemoved(position);
+    @Override
+    public long getItemId(int position) {
+        return 0;
     }
 
-    public void editItem(int position) {
-        ToDoModel item = todoList.get(position);
-        Bundle bundle = new Bundle();
-        bundle.putInt("id", item.getId());
-        bundle.putString("task", item.getTask());
-        AddNewTask fragment = new AddNewTask();
-        fragment.setArguments(bundle);
-        fragment.show(activity.getSupportFragmentManager(), AddNewTask.TAG);
+    private class ViewHolder{
+        CheckBox checkBox;
+        TextView txtStatus;
+        TextView txtDate;
+        TextView txtTime;
+        ImageView imgDelete;
     }
-    public static class ViewHolder extends RecyclerView.ViewHolder{
-        CheckBox task;
-        ViewHolder(View view){
-            super(view);
-            task = view.findViewById(R.id.todoCheckBox);
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        final ViewHolder holder;
+
+        if(convertView == null){
+            holder = new ViewHolder();
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            convertView = inflater.inflate(layout, null);
+
+            holder.txtStatus = (TextView) convertView.findViewById(R.id.textviewTen);
+            holder.txtDate = (TextView) convertView.findViewById(R.id.textviewDate);
+            holder.txtTime = (TextView) convertView.findViewById(R.id.textviewTime);
+//
+            holder.imgDelete = (ImageView) convertView.findViewById(R.id.imageviewDelete);
+            holder.checkBox = (CheckBox) convertView.findViewById(R.id.checkbox_id);
+
+            convertView.setTag(holder);
+        }else{
+            holder = (ViewHolder) convertView.getTag();
         }
+
+
+
+        final ToDoModel model = taskList.get(position);
+        holder.txtStatus.setText(model.getStatus());
+        holder.txtDate.setText(model.getDate());
+        holder.txtTime.setText(model.getTime());
+
+
+
+        //bắt sự kiện xóa và sửa
+        convertView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.editTask(model.getStatus(), model.getDate(), model.getTime() ,model.getId());
+            }
+        });
+
+        holder.imgDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.deleteTask(model.getStatus(), model.getId());
+            }
+        });
+
+        //bắt sự kiện checkbox
+        holder.checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (((CheckBox) v).isChecked()) {
+                    holder.checkBox.setChecked(true);
+                    holder.txtStatus.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
+                    holder.txtDate.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
+                    holder.txtTime.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
+                }
+                else
+                {
+                    holder.checkBox.setChecked(false);
+                    holder.txtStatus.setPaintFlags(holder.txtStatus.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+                    holder.txtDate.setPaintFlags(holder.txtDate.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+                    holder.txtTime.setPaintFlags(holder.txtTime.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+                }
+            }
+        });
+
+        return convertView;
     }
+
+
 }

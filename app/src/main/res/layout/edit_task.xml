@@ -15,7 +15,7 @@
             android:padding="8dp"
             android:textSize="20sp"
             android:textColor="#000000"
-            android:text="Add Task"/>
+            android:text="Update Task"/>
         <LinearLayout
             android:id="@+id/edit"
             android:layout_below="@+id/textThem"
@@ -28,8 +28,7 @@
             <EditText
 
                 android:layout_marginTop="10dp"
-                android:layout_below="@+id/textThem"
-
+                android:layout_below="@+id/textThem_edt"
                 android:id="@+id/editTextTenCV"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -46,7 +45,7 @@
                     android:layout_marginRight="10dp"/>
 
                 <TextView
-                    android:id="@+id/textDateCV"
+                    android:id="@+id/textDateCV_edt"
                     android:layout_width="match_parent"
                     android:layout_height="29dp"
                     android:layout_below="@+id/editTextTenCV"
@@ -67,7 +66,7 @@
                     android:layout_marginRight="10dp"/>
                 <TextView
 
-                    android:id="@+id/textTimeCV"
+                    android:id="@+id/textTimeCV_edt"
                     android:layout_marginTop="10dp"
                     android:layout_below="@+id/textDateCV"
 
@@ -86,18 +85,18 @@
             android:layout_marginRight="10dp"
             android:paddingBottom="40dp">
             <Button
-                android:id="@+id/buttonThem"
+                android:id="@+id/buttonupdate"
 
                 android:layout_weight="5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ADD"
+                android:text="UPDATE"
 
 
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="10dp"/>
             <Button
-                android:id="@+id/buttonHuy"
+                android:id="@+id/buttonCancle"
 
                 android:layout_weight="5"
                 android:layout_width="wrap_content"

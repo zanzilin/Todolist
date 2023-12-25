@@ -1,9 +1,16 @@
 package com.example.todolist.Model;
 
 public class ToDoModel {
-    private int id,status;
-    private String task;
+    private int id;
+    private String status, date, time;
 
+    public ToDoModel(int id, String status, String date, String time){
+        this.id = id;
+        this.status= status;
+        this.date=date;
+        this.time = time;
+
+    }
     public int getId() {
         return id;
     }
@@ -12,19 +19,27 @@ public class ToDoModel {
         this.id = id;
     }
 
-    public int getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public String getTask() {
-        return task;
+    public String getDate() {
+        return date;
     }
 
-    public void setTask(String task) {
-        this.task = task;
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 }
