@@ -17,8 +17,8 @@ public class Database extends SQLiteOpenHelper  {
 
     public Database(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
-
     }
+
 
     // truy vấn không trả kết quả (CREATE, INSERT, UPDATE, DELETE,...)
     public void QueryData(String sql){
@@ -34,6 +34,7 @@ public class Database extends SQLiteOpenHelper  {
         SQLiteDatabase database = this.getReadableDatabase();
         return database.rawQuery(sql,null);
     }
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {

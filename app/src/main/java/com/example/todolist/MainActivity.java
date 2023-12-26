@@ -1,18 +1,25 @@
 package com.example.todolist;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.app.NotificationCompat;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.TimePickerDialog;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -23,28 +30,29 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.Adapter.ToDoAdapter;
+import com.example.todolist.Interface.ToDoAdapterListener;
 import com.example.todolist.Model.ToDoModel;
 
 import com.example.todolist.Utils.Database;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.todolist.Notification.NotificationDetailActivity;
+import com.example.todolist.Notification.AlarmReceiver;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity implements ToDoAdapterListener {
 
 
     private Database database;
     private ListView taskList;
-    private ImageView imgAdd;
+    private ImageView imgAdd, imgImportant, imgDone,imgCancle;
     private ArrayList<ToDoModel> arrayModel;
     private ToDoAdapter adapter;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,16 +60,22 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
 
        imgAdd =  findViewById(R.id.img_add);
+       imgImportant = findViewById(R.id.img_imp);
+       imgDone = findViewById(R.id.img_done);
+       imgCancle = findViewById(R.id.img_cancle);
        taskList =  findViewById(R.id.tasksRecyclerView);
-       arrayModel = new ArrayList<>();
 
-       adapter = new ToDoAdapter(this, R.layout.t_layout, arrayModel);
+
+       arrayModel = new ArrayList<>();
+       adapter = new ToDoAdapter(this, R.layout.t_layout, arrayModel, this);
        taskList.setAdapter(adapter);
 
 
         // Khởi tạo đối tượng Database
         database = new Database(this, "note.sqlite", null, 2);
         database.QueryData("CREATE TABLE IF NOT EXISTS Task(Id INTEGER PRIMARY KEY AUTOINCREMENT, Status VARCHAR(200), Date VARCHAR(200), Time VARCHAR(200));");
+        database.QueryData("CREATE TABLE IF NOT EXISTS deleted_Task(Id INTEGER PRIMARY KEY AUTOINCREMENT, Status VARCHAR(200), Date VARCHAR(200), Time VARCHAR(200));");
+
         GetDataToDo();
 
 
@@ -72,6 +86,26 @@ public class MainActivity extends AppCompatActivity  {
             @Override
             public void onClick(View v) {
                 addNewTask();
+            }
+        });
+
+        imgImportant.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               openImportantTasks();
+            }
+        });
+        imgDone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openDoneTasks();
+            }
+        });
+        imgCancle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, CancleTasks.class);
+                startActivity(intent);
             }
         });
     }
@@ -117,7 +151,6 @@ public class MainActivity extends AppCompatActivity  {
                     database.QueryData("INSERT INTO Task (Id, Status, Date, Time) VALUES (null, '" + status + "','"+date+"','"+time+"');");
                     Toast.makeText(MainActivity.this, "Đã thêm.",Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
-
                     GetDataToDo();
                 }
             }
@@ -133,6 +166,7 @@ public class MainActivity extends AppCompatActivity  {
 
     }
 
+    @Override
     public void editTask(String status, String date, String time, final int id){
 
         final  Dialog dialog = new Dialog(this);
@@ -188,8 +222,8 @@ public class MainActivity extends AppCompatActivity  {
         dialog.show();
 
     }
-
-    public void deleteTask(String status, final int id){
+    @Override
+    public void deleteTask(String status, final int id, String date, String time){
         AlertDialog.Builder dialogXoa = new AlertDialog.Builder(this);
         dialogXoa.setMessage("Bạn có muốn xóa không?");
 
@@ -197,6 +231,7 @@ public class MainActivity extends AppCompatActivity  {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 database.QueryData("DELETE FROM Task WHERE Id = '"+id+"'");
+                database.QueryData("INSERT INTO deleted_Task(Id, Status, Date, Time) VALUES (null, '" + status + "','"+date+"','"+time+"');");
                 Toast.makeText(MainActivity.this, "Đã xóa",Toast.LENGTH_SHORT).show();
                 GetDataToDo();
             }
@@ -209,6 +244,33 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
         dialogXoa.show();
+
+    }
+
+
+    private void openImportantTasks() {
+        Intent intent = new Intent(MainActivity.this, ImportantTasks.class);
+        ArrayList<ToDoModel> importantTasks = new ArrayList<>();
+
+        for (ToDoModel task : arrayModel) {
+            if (task.isFlagged()) {
+                importantTasks.add(task);
+
+            }
+        }
+        intent.putParcelableArrayListExtra("importantTasks", (ArrayList<? extends Parcelable>) importantTasks);
+        startActivity(intent);
+    }
+    private void openDoneTasks(){
+        ArrayList<ToDoModel> selectedTasks = new ArrayList<>();
+        for (ToDoModel task : arrayModel) {
+            if (task.isChecked()) {
+                selectedTasks.add(task);
+            }
+        }
+        Intent intent = new Intent(MainActivity.this, DoneTasks.class);
+        intent.putParcelableArrayListExtra("selectedTasks", (ArrayList<? extends Parcelable>) selectedTasks);
+        startActivity(intent);
 
     }
 
@@ -258,6 +320,52 @@ public class MainActivity extends AppCompatActivity  {
         }, nam, thang, ngay);
         datePickerDialog.show();
     }
+
+    public void setMultipleAlarms(Calendar calendar, EditText edtTen){
+
+        //đặt chuông báo
+        AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent(MainActivity.this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                MainActivity.this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        manager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
+        //Tạo thông báo hiển thị trên màn hình
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            int notification = NotificationManager.IMPORTANCE_DEFAULT;
+            CharSequence name = "To Do List";
+            NotificationChannel channel = new NotificationChannel("TDL_1", name, notification);
+            channel.setDescription(edtTen.getText().toString());
+            NotificationManager notificationManager = (NotificationManager) getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+        addNotification(edtTen.getText().toString());
+
+    }
+    private void addNotification(String des){
+        String strTitle = "To Do List";
+        String strMsg = des;
+        Intent notificationIntent = new Intent(this, NotificationDetailActivity.class);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        notificationIntent.putExtra("message", strMsg);
+        notificationIntent.putExtra("title", strTitle);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,"Hello")
+                .setSmallIcon(R.drawable.icon1)
+                .setContentTitle(strTitle)
+                .setContentText(strMsg)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setOnlyAlertOnce(true)
+                .setColor(Color.BLUE)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                .addAction(R.mipmap.ic_launcher,"DỪNG", pendingIntent);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.notify(0, builder.build());
+    }
+
 
 
 

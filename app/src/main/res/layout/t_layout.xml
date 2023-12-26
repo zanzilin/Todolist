@@ -59,14 +59,21 @@
         android:layout_width="wrap_content"
         android:layout_weight="2"
         android:gravity="center"
+        android:orientation="horizontal"
         android:layout_height="50dp">
-
+        <ImageView
+            android:id="@+id/iv_flag"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_weight="1"
+            android:src="@drawable/baseline_flag_24"
+            />
         <ImageView
             android:id="@+id/imageviewDelete"
             android:layout_weight="1"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:src="@drawable/baseline_info_24"/>
+            android:src="@drawable/baseline_cancel_24"/>
     </LinearLayout>
 
 
