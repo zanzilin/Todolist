@@ -34,12 +34,12 @@ import com.example.todolist.Adapter.ToDoAdapter;
 import com.example.todolist.Interface.ToDoAdapterListener;
 import com.example.todolist.Model.ToDoModel;
 
+import com.example.todolist.Notification.AlarmReceiver;
 import com.example.todolist.Tasks.CancleTasks;
 import com.example.todolist.Tasks.DoneTasks;
 import com.example.todolist.Tasks.ImportantTasks;
 import com.example.todolist.Utils.Database;
 import com.example.todolist.Notification.NotificationDetailActivity;
-import com.example.todolist.Notification.AlarmReceiver;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -379,6 +379,7 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
         adapter.notifyDataSetChanged();
     }
 
+
     private void pickTime(final TextView txtTime, final EditText edtTen) {
         final Calendar calendar = Calendar.getInstance();
 
@@ -390,7 +391,7 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
                 calendar.set(0,0,0,hourOfDay, minute);
                 txtTime.setText(simpleDateFormat.format(calendar.getTime()));
-                //setMultipleAlarms(calendar, edtTen);
+                setMultipleAlarms(calendar, edtTen);
             }
         }, gio, phut, true);
         timePickerDialog.show();
@@ -418,32 +419,34 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
         Intent intent = new Intent(MainActivity.this, AlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                MainActivity.this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT
+                MainActivity.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         manager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
 
-        //Tạo thông báo hiển thị trên màn hình
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        // Tạo thông báo hiển thị trên màn hình
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             int notification = NotificationManager.IMPORTANCE_DEFAULT;
             CharSequence name = "To Do List";
             NotificationChannel channel = new NotificationChannel("TDL_1", name, notification);
             channel.setDescription(edtTen.getText().toString());
-            NotificationManager notificationManager = (NotificationManager) getSystemService(NotificationManager.class);
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
         addNotification(edtTen.getText().toString());
 
     }
-    private void addNotification(String des){
+    private void addNotification(String des) {
         String strTitle = "To Do List";
         String strMsg = des;
         Intent notificationIntent = new Intent(this, NotificationDetailActivity.class);
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         notificationIntent.putExtra("message", strMsg);
         notificationIntent.putExtra("title", strTitle);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,"Hello")
-                .setSmallIcon(R.drawable.icon1)
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "Hello")
+                .setSmallIcon(R.drawable.baseline_timer_24)
                 .setContentTitle(strTitle)
                 .setContentText(strMsg)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -452,8 +455,8 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
                 .setOnlyAlertOnce(true)
                 .setColor(Color.BLUE)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-                .addAction(R.mipmap.ic_launcher,"DỪNG", pendingIntent);
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                .addAction(R.mipmap.ic_launcher, "DỪNG", pendingIntent);
+        NotificationManager manager = getSystemService(NotificationManager.class);
         manager.notify(0, builder.build());
     }
 

@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 public class ToDoModel implements Parcelable {
     private int id;
+
+
     private String status, date, time;
     private boolean isChecked, isFlagged;
 

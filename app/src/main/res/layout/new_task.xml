@@ -85,17 +85,7 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:paddingBottom="40dp">
-            <Button
-                android:id="@+id/buttonThem"
 
-                android:layout_weight="5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ADD"
-
-                android:backgroundTint="#00FF00"
-                android:layout_marginRight="10dp"
-                android:layout_marginTop="10dp"/>
             <Button
                 android:id="@+id/buttonHuy"
 
@@ -107,6 +97,15 @@
                 android:backgroundTint="#FF0000"
                 android:layout_toRightOf="@id/buttonThem"
                 android:layout_marginTop="10dp" />
+            <Button
+                android:id="@+id/buttonThem"
+                android:layout_weight="5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ADD"
+                android:backgroundTint="#00FF00"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"/>
         </LinearLayout>
     </LinearLayout>
 
