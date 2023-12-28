@@ -26,10 +26,29 @@
             android:textSize="25dp"
             android:textStyle="bold"/>
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="5dp">
+        <Button
+            android:id="@+id/btn_restore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:text="Khôi phục"/>
+
+        <Button
+            android:id="@+id/btn_restoreAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Khôi phục tất cả"/>
+    </LinearLayout>
 
     <ListView
         android:id="@+id/lv_impTask"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"/>
+
 </LinearLayout>

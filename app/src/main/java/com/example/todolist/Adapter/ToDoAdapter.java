@@ -15,6 +15,7 @@ import com.example.todolist.MainActivity;
 import com.example.todolist.Model.ToDoModel;
 import com.example.todolist.R;
 import com.example.todolist.Interface.ToDoAdapterListener;
+import com.example.todolist.Tasks.CancleTasks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,12 @@ public class ToDoAdapter extends BaseAdapter {
 
 
 
+    public ToDoAdapter(CancleTasks context, int layout, List<ToDoModel> taskList, ToDoAdapterListener listener) {
+        this.context = context;
+        this.layout = layout;
+        this.taskList = taskList;
+        this.listener = listener;
+    }
     public  ToDoAdapter(MainActivity context, int layout, List<ToDoModel> taskList, ToDoAdapterListener listener){
         this.context = context;
         this.layout = layout;
@@ -40,8 +47,10 @@ public class ToDoAdapter extends BaseAdapter {
         this.layout = layout;
         this.taskList = taskList;
     }
+
+
     private boolean isChecked,isFlag, isItemViewClickable = true;
-    private List<ToDoModel> checkedTasks = new ArrayList<>();
+
     public void setCancelTasksScreen(boolean isCancelTasksScreen) {
         this.isCancelTasksScreen = isCancelTasksScreen;
     }
@@ -146,8 +155,8 @@ public class ToDoAdapter extends BaseAdapter {
         }
 
         if (isCancelTasksScreen) {
-            holder.checkBox.setEnabled(false);
-            holder.imgDelete.setEnabled(false);
+            holder.checkBox.setEnabled(true);
+            holder.imgDelete.setEnabled(true);
             holder.imgFlag.setEnabled(false);
             convertView.setEnabled(false);
             convertView.setClickable(false);
@@ -221,6 +230,7 @@ public class ToDoAdapter extends BaseAdapter {
 
         return convertView;
     }
+
 
 
 

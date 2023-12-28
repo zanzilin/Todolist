@@ -11,7 +11,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,6 +34,9 @@ import com.example.todolist.Adapter.ToDoAdapter;
 import com.example.todolist.Interface.ToDoAdapterListener;
 import com.example.todolist.Model.ToDoModel;
 
+import com.example.todolist.Tasks.CancleTasks;
+import com.example.todolist.Tasks.DoneTasks;
+import com.example.todolist.Tasks.ImportantTasks;
 import com.example.todolist.Utils.Database;
 import com.example.todolist.Notification.NotificationDetailActivity;
 import com.example.todolist.Notification.AlarmReceiver;
@@ -42,6 +44,8 @@ import com.example.todolist.Notification.AlarmReceiver;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class MainActivity extends AppCompatActivity implements ToDoAdapterListener {
 
@@ -49,10 +53,19 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
     private Database database;
     private ListView taskList;
     private ImageView imgAdd, imgImportant, imgDone,imgCancle;
-    private ArrayList<ToDoModel> arrayModel;
+    private TextView tvSortName, tvSortDate,tvReload;
+    private EditText edtFindName;
+    private Button btnFindName;
+    private ArrayList<ToDoModel> arrayModel, searchResults, originalList;
     private ToDoAdapter adapter;
+    private boolean isAscending, isAscending_date = true;
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        GetDataToDo();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,11 +77,18 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
        imgDone = findViewById(R.id.img_done);
        imgCancle = findViewById(R.id.img_cancle);
        taskList =  findViewById(R.id.tasksRecyclerView);
+       tvSortName = findViewById(R.id.tv_sortName);
+       tvSortDate = findViewById(R.id.tv_sortDate);
+       tvReload = findViewById(R.id.tv_reload);
+       edtFindName = findViewById(R.id.edt_findName);
+       btnFindName = findViewById(R.id.btn_findName);
 
 
+       searchResults = new ArrayList<>();
        arrayModel = new ArrayList<>();
        adapter = new ToDoAdapter(this, R.layout.t_layout, arrayModel, this);
        taskList.setAdapter(adapter);
+       originalList = new ArrayList<>(arrayModel);
 
 
         // Khởi tạo đối tượng Database
@@ -106,6 +126,77 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, CancleTasks.class);
                 startActivity(intent);
+            }
+        });
+        tvReload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                GetDataToDo();
+            }
+        });
+        tvSortName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                isAscending = !isAscending;
+                Collections.sort(arrayModel, new Comparator<ToDoModel>() {
+                    @Override
+                    public int compare(ToDoModel task1, ToDoModel task2) {
+                        if (isAscending) {
+                            // Sắp xếp từ A-Z
+                            return task1.getStatus().compareToIgnoreCase(task2.getStatus());
+                        } else {
+                            // Sắp xếp từ Z-A
+                            return task2.getStatus().compareToIgnoreCase(task1.getStatus());
+                        }
+                    }
+                });
+
+                // Cập nhật lại adapter sau khi sắp xếp
+                adapter.notifyDataSetChanged();
+            }
+        });
+        tvSortDate.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                isAscending_date = !isAscending_date;
+                Collections.sort(arrayModel, new Comparator<ToDoModel>() {
+                    @Override
+                    public int compare(ToDoModel task1, ToDoModel task2) {
+                        if (isAscending_date) {
+                            // Sắp xếp từ cũ đến mới
+                            return task1.getDate().compareTo(task2.getDate());
+                        } else {
+                            // Sắp xếp từ mới đến cũ
+                            return task2.getDate().compareTo(task1.getDate());
+                        }
+                    }
+                });
+
+                // Cập nhật lại adapter sau khi sắp xếp
+                adapter.notifyDataSetChanged();
+
+            }
+        });
+
+        btnFindName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String searchText = edtFindName.getText().toString().toLowerCase();
+                searchResults.clear();
+
+                // Thực hiện tìm kiếm
+                for (ToDoModel item : arrayModel) {
+                    if (item.getStatus().toLowerCase().contains(searchText)) {
+                        searchResults.add(item);
+                    }
+                }
+
+                // Cập nhật danh sách arrayModel thành searchResults
+                originalList = new ArrayList<>(searchResults);
+                // Cập nhật adapter với danh sách mới
+
             }
         });
     }

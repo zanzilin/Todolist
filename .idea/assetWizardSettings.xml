@@ -67,6 +67,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
+                                                <entry key="color" value="000000" />
                                                 <entry key="imagePath" value="C:\Users\ADMIN\AppData\Local\Temp\ic_android_black_24dp.xml" />
                                               </map>
                                             </option>
@@ -79,7 +80,7 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="000000" />
-                                                <entry key="imagePath" value="C:\Users\ADMIN\OneDrive\Documents\File hoctap cua LPHP\HK5\PTUngDungDiDong\Final\Todolist\app\src\main\res\drawable\logo.png" />
+                                                <entry key="imagePath" value="C:\Users\ADMIN\Downloads\download-24px.xml" />
                                                 <entry key="scalingPercent" value="51" />
                                               </map>
                                             </option>
@@ -301,7 +302,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/delete/baseline_delete_24.xml" />
+                                      <entry key="url" value="file:/$USER_HOME$/AppData/Local/Android/Sdk/icons/material/materialicons/find_replace/baseline_find_replace_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -311,8 +312,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="9e9e9e" />
-                            <entry key="outputName" value="baseline_delete_24" />
+                            <entry key="color" value="050505" />
+                            <entry key="outputName" value="baseline_find_replace_24" />
                             <entry key="sourceFile" value="C:\Users\HP\AndroidStudioProjects\Todolist" />
                           </map>
                         </option>

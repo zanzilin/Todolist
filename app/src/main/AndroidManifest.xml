@@ -17,13 +17,13 @@
         android:theme="@style/Theme.Todolist"
         tools:targetApi="31">
         <activity
-            android:name=".CancleTasks"
+            android:name=".Tasks.CancleTasks"
             android:exported="false" />
         <activity
-            android:name=".DoneTasks"
+            android:name=".Tasks.DoneTasks"
             android:exported="false" />
         <activity
-            android:name=".ImportantTasks"
+            android:name=".Tasks.ImportantTasks"
             android:exported="false" />
         <activity
             android:name=".SplashActivity"

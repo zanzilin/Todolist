@@ -26,6 +26,10 @@ public class Database extends SQLiteOpenHelper  {
         SQLiteDatabase database = getWritableDatabase();
         database.execSQL(sql);
     }
+    public void Cursor(String sql){
+        SQLiteDatabase database = getWritableDatabase();
+        database.execSQL(sql);
+    }
 
     // truy vấn có trả kết quả (SELECT)
     // trả dữ liệu dạng con trỏ
@@ -34,6 +38,7 @@ public class Database extends SQLiteOpenHelper  {
         SQLiteDatabase database = this.getReadableDatabase();
         return database.rawQuery(sql,null);
     }
+
 
 
     @Override
