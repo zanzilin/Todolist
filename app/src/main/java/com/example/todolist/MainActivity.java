@@ -14,6 +14,8 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Build;
@@ -22,6 +24,8 @@ import android.os.Parcelable;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -41,6 +45,18 @@ import com.example.todolist.Tasks.ImportantTasks;
 import com.example.todolist.Utils.Database;
 import com.example.todolist.Notification.NotificationDetailActivity;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -52,10 +68,11 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
 
     private Database database;
     private ListView taskList;
-    private ImageView imgAdd, imgImportant, imgDone,imgCancle;
+    private ImageView imgAdd, imgImportant, imgDone,imgCancle, imgExport;
     private TextView tvSortName, tvSortDate,tvReload;
     private EditText edtFindName;
     private Button btnFindName;
+
     private ArrayList<ToDoModel> arrayModel, searchResults, originalList;
     private ToDoAdapter adapter;
     private boolean isAscending, isAscending_date = true;
@@ -82,6 +99,8 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
        tvReload = findViewById(R.id.tv_reload);
        edtFindName = findViewById(R.id.edt_findName);
        btnFindName = findViewById(R.id.btn_findName);
+       imgExport = findViewById(R.id.img_export);
+
 
 
        searchResults = new ArrayList<>();
@@ -199,7 +218,32 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
 
             }
         });
+        imgExport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Export Confirmation")
+                        .setMessage("Bạn có muốn xuất file Excel?")
+                        .setPositiveButton("Export", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                exportToExcel();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
+            }
+        });
+
+
     }
+
 
     private void addNewTask(){
 
@@ -254,6 +298,7 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
             }
         });
         dialog.show();
+
 
     }
 
@@ -378,6 +423,43 @@ public class MainActivity extends AppCompatActivity implements ToDoAdapterListen
         }
         adapter.notifyDataSetChanged();
     }
+    private void exportToExcel() {
+        // Tạo một workbook mới
+        Workbook workbook = new XSSFWorkbook();
+
+        // Tạo một trang tính mới
+        Sheet sheet = workbook.createSheet("Data");
+
+        // Ghi dữ liệu từ arrayModel vào tệp Excel
+        for (int i = 0; i < arrayModel.size(); i++) {
+            ToDoModel task = arrayModel.get(i);
+
+            Row row = sheet.createRow(i);
+            Cell statusCell = row.createCell(0);
+            statusCell.setCellValue(task.getStatus());
+
+            Cell dateCell = row.createCell(1);
+            dateCell.setCellValue(task.getDate());
+
+            Cell timeCell = row.createCell(2);
+            timeCell.setCellValue(task.getTime());
+        }
+
+        // Ghi workbook vào tệp Excel
+        try {
+            String filePath = getExternalFilesDir(null) + File.separator + "data.xlsx";
+            FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+            workbook.write(fileOutputStream);
+            fileOutputStream.close();
+            Toast.makeText(MainActivity.this, "Exported to Excel", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(MainActivity.this, "Export Failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
 
 
     private void pickTime(final TextView txtTime, final EditText edtTen) {

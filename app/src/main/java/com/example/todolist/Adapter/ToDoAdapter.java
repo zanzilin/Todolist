@@ -17,8 +17,13 @@ import com.example.todolist.R;
 import com.example.todolist.Interface.ToDoAdapterListener;
 import com.example.todolist.Tasks.CancleTasks;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ToDoAdapter extends BaseAdapter {
 
@@ -26,7 +31,8 @@ public class ToDoAdapter extends BaseAdapter {
     private int layout;
     private List<ToDoModel> taskList;
     private ToDoAdapterListener listener;
-    private boolean isCancelTasksScreen;
+    private boolean isCancelTasksScreen, isItemViewClickable;
+
 
 
 
@@ -46,10 +52,13 @@ public class ToDoAdapter extends BaseAdapter {
         this.context = context;
         this.layout = layout;
         this.taskList = taskList;
+        this.isItemViewClickable = true;
+
+
     }
 
 
-    private boolean isChecked,isFlag, isItemViewClickable = true;
+    private boolean isChecked,isFlag ;
 
     public void setCancelTasksScreen(boolean isCancelTasksScreen) {
         this.isCancelTasksScreen = isCancelTasksScreen;
@@ -82,11 +91,21 @@ public class ToDoAdapter extends BaseAdapter {
         return 0;
     }
 
+    public void setAllItemsChecked(boolean checked) {
+        for (int i = 0; i < taskList.size(); i++) {
+            taskList.get(i).setChecked(checked);
+        }
+        notifyDataSetChanged();
+
+    }
+
+
     private class ViewHolder{
         CheckBox checkBox;
         TextView txtStatus;
         TextView txtDate;
         TextView txtTime;
+        TextView tvdeadline;
         ImageView imgDelete;
         ImageView imgFlag;
     }
@@ -106,6 +125,7 @@ public class ToDoAdapter extends BaseAdapter {
             holder.imgDelete = (ImageView) convertView.findViewById(R.id.imageviewDelete);
             holder.imgFlag = (ImageView) convertView.findViewById(R.id.iv_flag);
             holder.checkBox = (CheckBox) convertView.findViewById(R.id.checkbox_id);
+            holder.tvdeadline = (TextView) convertView.findViewById(R.id.tv_deadline);
 
             convertView.setTag(holder);
         }else{
@@ -127,17 +147,46 @@ public class ToDoAdapter extends BaseAdapter {
         } else {
             holder.imgFlag.setColorFilter(Color.BLACK);
         }
+        if(checkSelectedDate(model.getDate(),model.getTime())==1){
+            holder.tvdeadline.setText("Due");
+            holder.tvdeadline.setBackgroundColor(Color.parseColor("#FFFF00"));
+            holder.tvdeadline.setCompoundDrawablesRelativeWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.assignment_24px), null, null, null);
+        }
+        else {
+            holder.tvdeadline.setText("Overdue");
+            holder.tvdeadline.setBackgroundColor(Color.RED);
+            holder.tvdeadline.setCompoundDrawablesRelativeWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.assignment_late_24px), null, null, null);
+
+        }
 
         if (isChecked){
+
             holder.checkBox.setChecked(true);
             holder.txtStatus.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
             holder.txtDate.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
             holder.txtTime.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
+
+            holder.tvdeadline.setText("Done");
+            holder.tvdeadline.setBackgroundColor(Color.GREEN);
+            holder.tvdeadline.setCompoundDrawablesRelativeWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.assignment_turned_in_24px), null, null, null);
+
         } else {
             holder.checkBox.setChecked(false);
             holder.txtStatus.setPaintFlags(holder.txtStatus.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
             holder.txtDate.setPaintFlags(holder.txtDate.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
             holder.txtTime.setPaintFlags(holder.txtTime.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+
+            if(checkSelectedDate(model.getDate(),model.getTime())==1){
+                holder.tvdeadline.setText("Due");
+                holder.tvdeadline.setBackgroundColor(Color.parseColor("#FFFF00"));
+                holder.tvdeadline.setCompoundDrawablesRelativeWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.assignment_24px), null, null, null);
+            }
+            else {
+                holder.tvdeadline.setText("Overdue");
+                holder.tvdeadline.setBackgroundColor(Color.RED);
+                holder.tvdeadline.setCompoundDrawablesRelativeWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.assignment_late_24px), null, null, null);
+
+            }
         }
 
         if (!isItemViewClickable) {
@@ -213,6 +262,11 @@ public class ToDoAdapter extends BaseAdapter {
                     holder.txtStatus.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
                     holder.txtDate.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
                     holder.txtTime.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG);
+
+                    holder.tvdeadline.setText("Done");
+                    holder.tvdeadline.setBackgroundColor(Color.GREEN);
+                    holder.tvdeadline.setCompoundDrawablesRelativeWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.assignment_turned_in_24px), null, null, null);
+
                 }
                 else
                 {
@@ -222,13 +276,54 @@ public class ToDoAdapter extends BaseAdapter {
                     holder.txtStatus.setPaintFlags(holder.txtStatus.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
                     holder.txtDate.setPaintFlags(holder.txtDate.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
                     holder.txtTime.setPaintFlags(holder.txtTime.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+
+                    if(checkSelectedDate(model.getDate(),model.getTime())==1){
+                        holder.tvdeadline.setText("Due");
+                        holder.tvdeadline.setBackgroundColor(Color.parseColor("#FFFF00"));
+                        holder.tvdeadline.setCompoundDrawablesRelativeWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.assignment_24px), null, null, null);
+                    }
+                    else {
+                        holder.tvdeadline.setText("Overdue");
+                        holder.tvdeadline.setBackgroundColor(Color.RED);
+                        holder.tvdeadline.setCompoundDrawablesRelativeWithIntrinsicBounds(context.getResources().getDrawable(R.drawable.assignment_late_24px), null, null, null);
+
+                    }
                 }
+
                 boolean isChecked = ((CheckBox) v).isChecked();
                 model.setChecked(isChecked);
+
             }
         });
 
         return convertView;
+    }
+    public int checkSelectedDate(String selectedDate, String selectedTime) {
+        try {
+            // Lấy thời gian hiện tại
+            Calendar currentCalendar = Calendar.getInstance();
+            long currentTimeMillis = currentCalendar.getTimeInMillis();
+
+            // Chuyển đổi ngày và thời gian được chọn thành đối tượng Calendar
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            Date selectedDateTime = dateFormat.parse(selectedDate + " " + selectedTime);
+            Calendar selectedCalendar = Calendar.getInstance();
+            selectedCalendar.setTime(selectedDateTime);
+            long selectedTimeMillis = selectedCalendar.getTimeInMillis();
+
+
+            if (selectedTimeMillis > currentTimeMillis) {
+
+                return 1;
+            } else {
+
+                return 0;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
     }
 
 

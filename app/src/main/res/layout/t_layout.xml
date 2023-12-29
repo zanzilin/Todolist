@@ -19,10 +19,16 @@
             android:layout_height="30dp"
             />
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="9"
+        android:orientation="horizontal">
+
         <LinearLayout
             android:layout_weight="8"
             android:orientation="vertical"
-            android:layout_width="100dp"
+            android:layout_width="60dp"
             android:paddingRight="10dp"
             android:layout_height="50dp">
             <TextView
@@ -53,6 +59,18 @@
                     />
             </LinearLayout>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_deadline"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:background="#FFFF00"
+            android:drawableLeft="@drawable/assignment_24px"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+    </LinearLayout>
 
 
 
